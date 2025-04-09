@@ -2,8 +2,6 @@
 .vscode/
 
 vendor/
-go.sum
-
 build/
 bin/
 dist/

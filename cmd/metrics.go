@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -14,23 +13,27 @@ var (
 
 func labelsFromConfig(cfg *config) prometheus.Labels {
 	labels := prometheus.Labels{}
-	for _, label := range cfg.PrometheusLabels {
-		parts := strings.SplitN(label, "=", 2)
-		if len(parts) != 2 {
-			continue
+	if cfg.PrometheusLabels != "" {
+		for _, label := range strings.Split(cfg.PrometheusLabels, ",") {
+			parts := strings.SplitN(label, "=", 2)
+			if len(parts) != 2 {
+				logger.Warn("invalid label format", "label", label)
+				continue
+			}
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			if key == "" || value == "" {
+				logger.Warn("empty label key or value", "label", label)
+				continue
+			}
+			labels[key] = value
 		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		if key == "" || value == "" {
-			continue
-		}
-		labels[key] = value
 	}
 	return labels
 }
 
 type prometheusCollector struct {
-	registry            *prometheus.Registry
+	registry            prometheus.Registry
 	constLabels         prometheus.Labels
 	OutputGauge         *prometheus.GaugeVec
 	APowerGauge         *prometheus.GaugeVec
@@ -45,20 +48,22 @@ type prometheusCollector struct {
 }
 
 func newPrometheusCollector(cfg *config) *prometheusCollector {
-	labels := labelsFromConfig(cfg)
+	constLabels := labelsFromConfig(cfg)
+	if len(constLabels) > 0 {
+		logger.Info("using custom labels", "labels", constLabels)
+	}
 	c := &prometheusCollector{
-		registry:            prometheus.NewRegistry(),
-		constLabels:         labels,
-		OutputGauge:         prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_output", Help: "Switch output state"}, commonLabelKeys),
-		APowerGauge:         prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_apower", Help: "Active power in Watts"}, commonLabelKeys),
-		VoltageGauge:        prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_voltage", Help: "Voltage in Volts"}, commonLabelKeys),
-		CurrentGauge:        prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_current", Help: "Current in Amps"}, commonLabelKeys),
-		FreqGauge:           prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_freq", Help: "Frequency in Hz"}, commonLabelKeys),
-		EnergyTotalGauge:    prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_energy_total_wh", Help: "Total energy in Wh"}, commonLabelKeys),
-		RetEnergyTotalGauge: prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_returned_energy_total_wh", Help: "Returned energy in Wh"}, commonLabelKeys),
-		EnergyMin0Gauge:     prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_energy_minute_0_mwh", Help: "Energy in mWh from minute -1"}, commonLabelKeys),
-		RetEnergyMin0Gauge:  prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_returned_energy_minute_0_mwh", Help: "Returned energy in mWh from minute -1"}, commonLabelKeys),
-		TempGauge:           prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_temperature_celsius", Help: "Temperature in Celsius"}, commonLabelKeys),
+		registry:            *prometheus.NewRegistry(),
+		OutputGauge:         prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_output", Help: "Switch output state", ConstLabels: constLabels}, commonLabelKeys),
+		APowerGauge:         prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_apower", Help: "Active power in Watts", ConstLabels: constLabels}, commonLabelKeys),
+		VoltageGauge:        prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_voltage", Help: "Voltage in Volts", ConstLabels: constLabels}, commonLabelKeys),
+		CurrentGauge:        prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_current", Help: "Current in Amps", ConstLabels: constLabels}, commonLabelKeys),
+		FreqGauge:           prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_freq", Help: "Frequency in Hz", ConstLabels: constLabels}, commonLabelKeys),
+		EnergyTotalGauge:    prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_energy_total_wh", Help: "Total energy in Wh", ConstLabels: constLabels}, commonLabelKeys),
+		RetEnergyTotalGauge: prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_returned_energy_total_wh", Help: "Returned energy in Wh", ConstLabels: constLabels}, commonLabelKeys),
+		EnergyMin0Gauge:     prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_energy_minute_0_mwh", Help: "Energy in mWh from minute -1", ConstLabels: constLabels}, commonLabelKeys),
+		RetEnergyMin0Gauge:  prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_returned_energy_minute_0_mwh", Help: "Returned energy in mWh from minute -1", ConstLabels: constLabels}, commonLabelKeys),
+		TempGauge:           prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "shelly_temperature_celsius", Help: "Temperature in Celsius", ConstLabels: constLabels}, commonLabelKeys),
 	}
 	c.registry.MustRegister(
 		c.OutputGauge,
@@ -76,16 +81,15 @@ func newPrometheusCollector(cfg *config) *prometheusCollector {
 }
 
 func (c *prometheusCollector) Registry() *prometheus.Registry {
-	return c.registry
+	return &c.registry
 }
 
-func (c *prometheusCollector) Collect(payload []byte, labels []string) error {
-	var d ShellyData
-	json.Unmarshal(payload, &d)
-
+func (c *prometheusCollector) Collect(d ShellyData, labels []string) error {
 	if len(commonLabelKeys) != len(labels) {
 		return fmt.Errorf("expected %d labels, got %d", len(commonLabelKeys), len(labels))
 	}
+
+	logger.Debug("received metrics", "labels", labels, "data", d)
 
 	l := prometheus.Labels{
 		commonLabelKeys[0]: labels[0],

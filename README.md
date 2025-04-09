@@ -31,7 +31,7 @@ The exporter is configured using environment variables. Below are the available 
 | `PROM_PATH`               | `/metrics`      | Path for Prometheus metrics.                    |
 | `PROM_USER`               |                 | Prometheus basic auth (optional).               |
 | `PROM_PASS`               |                 | Prometheus basic auth password (optional).      |
-| `PROM_LABELS`             |                 | Constant labels (optional).
+| `PROM_LABELS`             |                 | Comma separated labels, for eg: foo=bar,baz=bax (optional).  |
 | `LOG_LEVEL`               | `WARN`          | Logging level (`DEBUG`, `INFO`, `WARN`, `ERROR`).|
 
 

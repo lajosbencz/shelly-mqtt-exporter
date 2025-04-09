@@ -17,6 +17,7 @@ func newServer(cfg *config) *http.Server {
 		Handler: mux,
 	}
 	if cfg.PrometheusUser != "" && cfg.PrometheusPass != "" {
+		logger.Info("using Prometheus authentication")
 		basicAuth := newBasicAuth("Prometheus - Shelly", cfg.PrometheusUser, cfg.PrometheusPass)
 		mux.Handle("/metrics", basicAuth.Wrap(promHandler))
 	} else {

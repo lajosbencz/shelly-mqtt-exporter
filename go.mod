@@ -6,7 +6,6 @@ toolchain go1.23.8
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/fatih/color v1.18.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/wind-c/comqtt/v2 v2.6.0
 )
@@ -16,8 +15,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect

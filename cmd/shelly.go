@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"regexp"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/wind-c/comqtt/v2/mqtt"
 	mqttPackets "github.com/wind-c/comqtt/v2/mqtt/packets"
 )
@@ -99,7 +99,6 @@ func shellyHandler(cl *mqtt.Client, sub mqttPackets.Subscription, pk mqttPackets
 		// ignore system topics
 		return
 	}
-	c := color.New(color.Bold).Add(color.FgWhite)
 	// parse host and device index from topic name
 	regex := regexp.MustCompile(`^([^/]+)/status/switch:(\d+)$`)
 	matches := regex.FindStringSubmatch(pk.TopicName)
@@ -109,8 +108,9 @@ func shellyHandler(cl *mqtt.Client, sub mqttPackets.Subscription, pk mqttPackets
 	} else {
 		device := matches[1]
 		index := matches[2]
-		log.Println(c.Sprintf("Received message from device: %s, index: %s", device, index))
-		if err := collector.Collect(pk.Payload, []string{device, index}); err != nil {
+		var data ShellyData
+		json.Unmarshal(pk.Payload, &data)
+		if err := collector.Collect(data, []string{device, index}); err != nil {
 			log.Fatalln(err)
 		}
 	}

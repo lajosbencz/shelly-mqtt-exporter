@@ -15,6 +15,7 @@ func createBroker(cfg *config) (*mqtt.Server, error) {
 	})
 
 	if cfg.MqttUser != "" && cfg.MqttPass != "" {
+		logger.Info("using MQTT authentication")
 		broker.AddHook(new(auth.Hook), &auth.Options{
 			Ledger: &auth.Ledger{
 				Auth: auth.AuthRules{
