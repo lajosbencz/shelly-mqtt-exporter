@@ -30,7 +30,7 @@ func newServer(cfg *config) *server {
 	} else {
 		mux.Handle("/metrics", promHandler)
 	}
-	if cfg.IsTls() {
+	if cfg.IsPromTls() {
 		logger.Info("metrics server configured with TLS")
 	}
 	return &server{
@@ -47,15 +47,15 @@ type server struct {
 }
 
 func (s *server) Scheme() string {
-	if s.config.IsTls() {
+	if s.config.IsPromTls() {
 		return "https"
 	}
 	return "http"
 }
 
 func (s *server) ListenAndServe() error {
-	if s.config.IsTls() {
-		return s.Server.ListenAndServeTLS(s.config.TLSCertPath, s.config.TLSKeyPath)
+	if s.config.IsPromTls() {
+		return s.Server.ListenAndServeTLS(s.config.PrometheusTLSCertPath, s.config.PrometheusTLSKeyPath)
 	}
 	return s.Server.ListenAndServe()
 }

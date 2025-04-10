@@ -36,8 +36,8 @@ func createBroker(cfg *config) (*mqtt.Server, error) {
 
 	address := fmt.Sprintf("%s:%d", cfg.MqttHost, cfg.MqttPort)
 	var tcpListener *listeners.TCP
-	if cfg.TLSCertPath != "" && cfg.TLSKeyPath != "" {
-		cert, err := tls.LoadX509KeyPair(cfg.TLSCertPath, cfg.TLSKeyPath)
+	if cfg.IsMqttTls() {
+		cert, err := tls.LoadX509KeyPair(cfg.MqttTLSCertPath, cfg.MqttTLSKeyPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load MQTT TLS certificate: %w", err)
 		}
