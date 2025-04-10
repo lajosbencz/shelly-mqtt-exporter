@@ -22,23 +22,21 @@ The exporter is configured using environment variables. Below are the available 
 
 | Environment Variable      | Default Value   | Description                                      |
 |---------------------------|-----------------|--------------------------------------------------|
-| `MQTT_HOST`               | `localhost`     | MQTT broker host.                               |
-| `MQTT_PORT`               | `1883`          | MQTT broker port.                               |
-| `MQTT_USER`               |                 | MQTT username (optional).                       |
-| `MQTT_PASS`               |                 | MQTT password (optional).                       |
-| `MQTT_TLS_CERT`           |                 | Path to MQTT TLS certificate file (optional).   |
-| `MQTT_TLS_KEY`            |                 | Path to MQTT TLS key file (optional).           |
-| `PROM_HOST`               | `localhost`     | Prometheus metrics server host.                 |
-| `PROM_PORT`               | `2112`          | Prometheus metrics server port.                 |
-| `PROM_PATH`               | `/metrics`      | Path for Prometheus metrics.                    |
-| `PROM_USER`               |                 | Prometheus basic auth (optional).               |
-| `PROM_PASS`               |                 | Prometheus basic auth password (optional).      |
-| `PROM_LABELS`             |                 | Comma separated labels, for eg: foo=bar,baz=bax (optional).  |
-| `PROM_TLS_CERT`           |                 | Path to HTTP TLS certificate file (optional).   |
-| `PROM_TLS_KEY`            |                 | Path to HTTP TLS key file (optional).           |
 | `LOG_LEVEL`               | `WARN`          | Logging level (`DEBUG`, `INFO`, `WARN`, `ERROR`).|
-| `TLS_CERT`                |                 | Path to TLS certificate file (optional).        |
-| `TLS_KEY`                 |                 | Path to TLS key file (optional).                |
+| `MQTT_HOST`               | `localhost`     | MQTT broker host.                                |
+| `MQTT_PORT`               | `1883`          | MQTT broker port.                                |
+| `MQTT_USER`               |                 | MQTT username (optional).                        |
+| `MQTT_PASS`               |                 | MQTT password (optional).                        |
+| `MQTT_TLS_CERT`           |                 | Path to MQTT TLS certificate file (optional).    |
+| `MQTT_TLS_KEY`            |                 | Path to MQTT TLS key file (optional).            |
+| `PROM_HOST`               | `localhost`     | Prometheus metrics server host.                  |
+| `PROM_PORT`               | `2112`          | Prometheus metrics server port.                  |
+| `PROM_PATH`               | `/metrics`      | Path for Prometheus metrics.                     |
+| `PROM_USER`               |                 | Prometheus basic auth (optional).                |
+| `PROM_PASS`               |                 | Prometheus basic auth password (optional).       |
+| `PROM_LABELS`             |                 | Comma separated labels, for eg: foo=bar,baz=bax (optional).  |
+| `PROM_TLS_CERT`           |                 | Path to HTTP TLS certificate file (optional).    |
+| `PROM_TLS_KEY`            |                 | Path to HTTP TLS key file (optional).            |
 
 
 ## Metrics

@@ -36,14 +36,8 @@ type config struct {
 	PrometheusLabels      string `env:"PROM_LABELS" envDefault:""`
 	PrometheusTLSCertPath string `env:"HTTP_TLS_CERT" envDefault:""`
 	PrometheusTLSKeyPath  string `env:"HTTP_TLS_KEY" envDefault:""`
-	TLSCertPath           string `env:"TLS_CERT" envDefault:""`
-	TLSKeyPath            string `env:"TLS_KEY" envDefault:""`
 	MqttTLSCertPath       string `env:"MQTT_TLS_CERT" envDefault:""`
 	MqttTLSKeyPath        string `env:"MQTT_TLS_KEY" envDefault:""`
-}
-
-func (c *config) IsTls() bool {
-	return c.TLSCertPath != "" && c.TLSKeyPath != ""
 }
 
 func (c *config) IsMqttTls() bool {
