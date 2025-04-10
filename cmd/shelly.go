@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"regexp"
 	"strings"
 
@@ -111,7 +110,7 @@ func shellyHandler(cl *mqtt.Client, sub mqttPackets.Subscription, pk mqttPackets
 		var data ShellyData
 		json.Unmarshal(pk.Payload, &data)
 		if err := collector.Collect(data, []string{device, index}); err != nil {
-			log.Fatalln(err)
+			logger.Error("failed to collect metrics", "device", device, "index", index, "error", err)
 		}
 	}
 }

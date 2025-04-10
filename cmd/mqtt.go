@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 
 	"github.com/wind-c/comqtt/v2/mqtt"
@@ -22,7 +23,7 @@ func createBroker(cfg *config) (*mqtt.Server, error) {
 					// {Remote: "127.0.0.1:*", Allow: true},
 					// {Remote: "localhost:*", Allow: true},
 					// {Remote: "::1:*", Allow: true},
-					{Username: auth.RString(cfg.MqttHost), Password: auth.RString(cfg.MqttPass), Allow: true},
+					{Username: auth.RString(cfg.MqttUser), Password: auth.RString(cfg.MqttPass), Allow: true},
 				},
 				ACL: auth.ACLRules{},
 			},
@@ -34,7 +35,18 @@ func createBroker(cfg *config) (*mqtt.Server, error) {
 	}
 
 	address := fmt.Sprintf("%s:%d", cfg.MqttHost, cfg.MqttPort)
-	tcpListener := listeners.NewTCP(fmt.Sprintf("mqtt-%d", cfg.MqttPort), address, nil)
+	var tcpListener *listeners.TCP
+	if cfg.TLSCertPath != "" && cfg.TLSKeyPath != "" {
+		cert, err := tls.LoadX509KeyPair(cfg.TLSCertPath, cfg.TLSKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load MQTT TLS certificate: %w", err)
+		}
+		tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
+		tcpListener = listeners.NewTCP(fmt.Sprintf("mqtt-tls-%d", cfg.MqttPort), address, &listeners.Config{TLSConfig: tlsConfig})
+		logger.Info("MQTT broker configured with TLS")
+	} else {
+		tcpListener = listeners.NewTCP(fmt.Sprintf("mqtt-%d", cfg.MqttPort), address, nil)
+	}
 	if err := broker.AddListener(tcpListener); err != nil {
 		return nil, err
 	}

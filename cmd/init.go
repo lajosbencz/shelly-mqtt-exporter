@@ -1,33 +1,51 @@
 package main
 
 import (
+	"log"
 	"log/slog"
 	"os"
-
-	"github.com/caarlos0/env"
+	"strings"
 )
 
-var cfg config
+var cfg *config
 var logger *slog.Logger
 var collector *prometheusCollector
 
 func init() {
+	var err error
 	var level slog.Level
-	logLevel := os.Getenv("LOG_LEVEL")
+	logLevel := strings.ToUpper(os.Getenv("LOG_LEVEL"))
 	if logLevel == "" || logLevel == "WARNING" {
 		logLevel = "WARN"
 	}
-	if err := level.UnmarshalText([]byte(logLevel)); err != nil {
+	err = level.UnmarshalText([]byte(logLevel))
+	if err != nil {
 		panic(err)
 	}
 	logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: level,
 	}))
 
-	if err := env.Parse(&cfg); err != nil {
-		logger.Error("failed to parse environment variables", "error", err)
-		os.Exit(1)
+	cfg, err = getConfig()
+	if err != nil {
+		panic(err)
 	}
 
-	collector = newPrometheusCollector(&cfg)
+	if len(cfg.PrometheusPath) > 0 && cfg.PrometheusPath[0] != '/' {
+		cfg.PrometheusPath = "/" + cfg.PrometheusPath
+	}
+
+	collector = newPrometheusCollector(cfg)
+}
+
+type serverErrorLogWriter struct{}
+
+func (*serverErrorLogWriter) Write(p []byte) (int, error) {
+	m := string(p)
+	logger.Debug(m[:len(m)-1], "source", "http")
+	return len(p), nil
+}
+
+func newServerErrorLog() *log.Logger {
+	return log.New(&serverErrorLogWriter{}, "", 0)
 }

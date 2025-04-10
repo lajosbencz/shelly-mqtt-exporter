@@ -33,6 +33,8 @@ The exporter is configured using environment variables. Below are the available 
 | `PROM_PASS`               |                 | Prometheus basic auth password (optional).      |
 | `PROM_LABELS`             |                 | Comma separated labels, for eg: foo=bar,baz=bax (optional).  |
 | `LOG_LEVEL`               | `WARN`          | Logging level (`DEBUG`, `INFO`, `WARN`, `ERROR`).|
+| `TLS_CERT`                |                 | Path to TLS certificate file (optional).        |
+| `TLS_KEY`                 |                 | Path to TLS key file (optional).                |
 
 
 ## Metrics
@@ -64,6 +66,10 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:2112"]
 ```
+
+## TLS
+
+If you want to use TLS, you need to set the `TLS_CERT` and `TLS_KEY` environment variables to the paths of your TLS certificate and key files, respectively. Both MQTT and Prometheus connections will use these certificates for TLS.
 
 
 ## License

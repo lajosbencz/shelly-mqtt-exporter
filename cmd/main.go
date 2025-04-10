@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,14 +14,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	broker, err := createBroker(&cfg)
+	broker, err := createBroker(cfg)
 	if err != nil {
 		logger.Error("failed to create MQTT broker", "error", err)
 		return
 	}
 	broker.Subscribe("#", 1, shellyHandler)
 
-	server := newServer(&cfg)
+	server := newServer(cfg)
 
 	go func() {
 		logger.Info("starting MQTT broker", "host", cfg.MqttHost, "port", cfg.MqttPort)
@@ -30,7 +31,8 @@ func main() {
 	}()
 
 	go func() {
-		logger.Info("starting metrics server", "host", cfg.PrometheusHost, "port", cfg.PrometheusPort)
+		uri := fmt.Sprintf("%s://%s:%d%s", server.Scheme(), cfg.PrometheusHost, cfg.PrometheusPort, cfg.PrometheusPath)
+		logger.Info("starting metrics server", "uri", uri)
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			logger.Error("failed to start metrics server", "error", err)
 		}
