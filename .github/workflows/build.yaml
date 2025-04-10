@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
@@ -27,6 +28,10 @@ jobs:
             goos: windows
     steps:
     - uses: actions/checkout@v4
+    - name: Set APP_VERSION env from semantic git tag
+      run: echo APP_VERSION=${GITHUB_REF#refs/tags/} >> ${GITHUB_ENV}
+    - name: Set BUILD_TIME env
+      run: echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
     - uses: wangyoucao577/go-release-action@v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,3 +39,4 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "./cmd"
         extra_files: LICENSE README.md
+        ldflags: -X "main.appVersion=${{ env.APP_VERSION }}" -X "main.buildTime=${{ env.BUILD_TIME }}" -X main.gitCommit=${{ github.sha }} -X main.gitRef=${{ github.ref }}
