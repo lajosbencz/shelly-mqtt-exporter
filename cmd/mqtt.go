@@ -1,19 +1,60 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 
 	"github.com/wind-c/comqtt/v2/mqtt"
 	"github.com/wind-c/comqtt/v2/mqtt/hooks/auth"
 	"github.com/wind-c/comqtt/v2/mqtt/listeners"
+	"github.com/wind-c/comqtt/v2/mqtt/packets"
 )
+
+type infoHook struct {
+	mqtt.HookBase
+}
+
+func (h *infoHook) ID() string {
+	return "info"
+}
+
+func (h *infoHook) Provides(b byte) bool {
+	return bytes.Contains([]byte{
+		mqtt.OnConnect,
+		mqtt.OnSessionEstablished,
+		mqtt.OnDisconnect,
+	}, []byte{b})
+}
+
+func (h *infoHook) Init(config any) error {
+	return nil
+}
+
+func (h *infoHook) OnConnect(cl *mqtt.Client, pk packets.Packet) error {
+	logger.Info("MQTT client connected", "remote", cl.Net.Conn.RemoteAddr())
+	return nil
+}
+
+func (h *infoHook) OnSessionEstablished(cl *mqtt.Client, pk packets.Packet) {
+	logger.Info("MQTT session established", "remote", cl.Net.Conn.RemoteAddr())
+}
+
+func (h *infoHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
+	if err != nil {
+		logger.Warn("MQTT client disconnected with error", "remote", cl.Net.Conn.RemoteAddr(), "error", err)
+	} else {
+		logger.Info("MQTT client disconnected", "remote", cl.Net.Conn.RemoteAddr())
+	}
+}
 
 func createBroker(cfg *config) (*mqtt.Server, error) {
 	broker := mqtt.New(&mqtt.Options{
 		InlineClient: true,
 		Logger:       logger,
 	})
+
+	broker.AddHook(new(infoHook), &auth.Options{})
 
 	if cfg.MqttUser != "" && cfg.MqttPass != "" {
 		logger.Info("using MQTT authentication")
